@@ -9,52 +9,27 @@
         html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background-color: #141a21; }
         #map { width: 100%; height: 100%; z-index: 1; }
         .wind-arrow-icon { background: transparent !important; border: none !important; box-shadow: none !important; }
-        
-        /* Info-Box (Links oben) */
-        .info-box { 
-            position: fixed; 
-            top: 20px; 
-            left: 80px; 
-            width: 310px; 
-            z-index: 9999; 
-            background-color: rgba(255, 255, 255, 0.95); 
-            border: 2px solid #333; 
-            border-radius: 8px; 
-            padding: 12px; 
-            font-family: 'Helvetica Neue', Arial, sans-serif; 
-            box-shadow: 4px 4px 10px rgba(0,0,0,0.25); 
-        }
-        .info-box h3 { 
-            margin: 0 0 6px 0; 
-            color: #111; 
-            font-size: 15px; 
-            border-bottom: 2px solid #337ab7; 
-            padding-bottom: 4px; 
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .info-table { width: 100%; font-size: 11px; border-collapse: collapse; line-height: 1.6; }
-        .info-table td { padding: 2px 0; }
-        .info-label { font-weight: bold; color: #555; }
-        .info-value { text-align: right; color: #333; font-weight: bold; }
-        
-        /* Minimieren-Button für Info-Box */
-        #toggleInfoBtn {
-            background: #337ab7;
-            border: none;
-            color: white;
-            border-radius: 4px;
-            padding: 2px 8px;
-            font-size: 11px;
-            cursor: pointer;
-            font-weight: bold;
-        }
-        #toggleInfoBtn:active { background: #205080; }
-        .info-box.collapsed .info-table { display: none; }
-        .info-box.collapsed { width: 220px; }
 
-        /* --- NEUES VERTIKALES LÄUFE-PANEL (Rechts) --- */
+        /* --- SCHWEBENDER LADE-INDIKATOR (Oben Mitte) --- */
+        #loadingIndicator {
+            display: none;
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 100000;
+            background-color: rgba(33, 43, 54, 0.9);
+            border: 1px solid rgba(255,255,255,0.15);
+            border-radius: 20px;
+            padding: 8px 16px;
+            font-family: Arial, sans-serif;
+            font-size: 13px;
+            font-weight: bold;
+            color: #d9534f;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        }
+
+        /* --- VERTIKALES LÄUFE-PANEL (Rechts) --- */
         .member-panel {
             position: fixed;
             top: 20px;
@@ -281,21 +256,9 @@
         .legend-scale { position: relative; height: 200px; display: flex; flex-direction: column; }
         .legend-bar { width: 25px; height: 200px; display: flex; flex-direction: column; border-radius: 3px; overflow: hidden; border: 1.5px solid rgba(0,0,0,0.5); }
         .legend-labels { position: absolute; left: 35px; top: -7px; height: 214px; font-size: 12px; font-weight: bold; line-height: 1; display: flex; flex-direction: column; justify-content: space-between; }
-        #loadingIndicator { display: none; text-align: center; margin-top: 8px; font-size: 11px; font-weight: bold; color: #d9534f; }
 
         /* ================= RESPONSIVE DESIGN (SMARTPHONES) ================= */
         @media (max-width: 768px) {
-            .info-box {
-                top: 10px;
-                left: 50px;
-                right: 10px;
-                width: auto;
-                max-width: none;
-                padding: 8px;
-            }
-            .info-box h3 { font-size: 13px; margin-bottom: 4px; }
-            .info-box.collapsed { width: auto; }
-            
             /* Kontrollzentrum ganz nach unten über die volle Breite */
             .control-panel {
                 bottom: 10px;
@@ -309,7 +272,7 @@
 
             /* Läufe-Panel auf Smartphones verkleinern */
             .member-panel {
-                top: 80px;
+                top: 20px;
                 right: 10px;
                 bottom: 145px;
                 width: 110px;
@@ -338,28 +301,10 @@
     <!-- Die Karte -->
     <div id="map"></div>
 
-    <!-- Info-Box -->
-    <div class="info-box">
-        <h3>
-            <span>ICON-CH1 Wind (10m)</span>
-            <button id="toggleInfoBtn" onclick="toggleInfoBox()">Minimieren</button>
-        </h3>
-        <table class="info-table">
-            <tr><td class="info-label">Modelllauf (Ref):</td><td id="infoBoxRef" class="info-value">Wird geladen...</td></tr>
-            <tr style="border-top: 1px solid #eee; margin-top: 4px;">
-                <td class="info-label" style="padding-top: 4px;">Aktiver Member:</td>
-                <td id="infoBoxMember" class="info-value" style="color: #2d21a9; padding-top: 4px;">Wird geladen...</td>
-            </tr>
-            <tr><td class="info-label">Prognoseschritt:</td><td id="infoBoxStep" class="info-value" style="color: #d9534f; font-size: 12px;">+0 Std.</td></tr>
-            <tr style="border-top: 1px solid #ccc;">
-                <td class="info-label" style="padding-top: 6px; font-size: 12px; color: #111;">Gültig für:</td>
-                <td id="infoBoxValid" class="info-value" style="color: #337ab7; font-size: 12px; padding-top: 6px;">Wird geladen...</td>
-            </tr>
-        </table>
-        <div id="loadingIndicator">Lade Wetterdaten...</div>
-    </div>
+    <!-- Schwebender Lade-Indikator (Oben Mitte) -->
+    <div id="loadingIndicator">Lade Wetterdaten...</div>
 
-    <!-- --- NEUES VERTIKALES LÄUFE-PANEL (Rechts) --- -->
+    <!-- VERTIKALES LÄUFE-PANEL (Rechts) -->
     <div class="member-panel">
         <div class="member-panel-title">Läufe</div>
         <div class="member-section-title">Hauptlauf</div>
@@ -368,7 +313,7 @@
         <div id="ensembleContainer"></div>
     </div>
 
-    <!-- --- KONTROLLZENTRUM (Unten Mitte) --- -->
+    <!-- KONTROLLZENTRUM (Unten Mitte) -->
     <div class="control-panel">
         <!-- Dynamische Wochentags-Buttons -->
         <div class="day-buttons-row" id="dayButtonsContainer"></div>
@@ -434,18 +379,6 @@
         var dayFirstIndices = {};
         var weekdays = ["So", "Mo", "Di", "Mi", "Do", "Fr", "Sa"];
 
-        // Info-Box einklappen/ausklappen
-        function toggleInfoBox() {
-            var box = document.querySelector(".info-box");
-            var btn = document.getElementById("toggleInfoBtn");
-            box.classList.toggle("collapsed");
-            if (box.classList.contains("collapsed")) {
-                btn.innerText = "Anzeigen";
-            } else {
-                btn.innerText = "Minimieren";
-            }
-        }
-
         // Navigations-Funktionen (Zeit)
         function navLeft() {
             var newStep = Math.max(0, currentStepIdx - 1);
@@ -497,7 +430,7 @@
             });
         }
 
-        // NEU: Läufe-Panel dynamisch mit Buttons befüllen
+        // Läufe-Panel dynamisch mit Buttons befüllen
         function initMemberPanel() {
             var hauptContainer = document.getElementById("hauptlaufContainer");
             var ensembleContainer = document.getElementById("ensembleContainer");
@@ -576,10 +509,6 @@
                     else if (event.key === "ArrowDown") { event.preventDefault(); navDown(); }
                 });
 
-                if (window.innerWidth <= 768) {
-                    toggleInfoBox();
-                }
-
                 await updateForecast(0, 0);
             } catch (err) {
                 console.error("Fehler beim Laden der App:", err);
@@ -620,11 +549,6 @@
             // UI aktualisieren
             document.getElementById("currentStepLabel").innerText = formattedLT;
             document.getElementById("modelRunLabel").innerText = formattedRef;
-            
-            document.getElementById("infoBoxRef").innerText = config.ref_time_utc;
-            document.getElementById("infoBoxStep").innerText = "+" + tInfo.step_hours + " Std.";
-            document.getElementById("infoBoxValid").innerText = tInfo.local_str;
-            document.getElementById("infoBoxMember").innerText = config.member_names[currentMemberIdx];
 
             // Wochentags-Button-Aktivierung aktualisieren
             var day = parseInt(dateParts[0]);
@@ -644,13 +568,12 @@
                 }
             });
 
-            // NEU: Läufe-Panel-Aktivierung aktualisieren & Scroll-to-View
+            // Läufe-Panel-Aktivierung aktualisieren & Scroll-to-View
             for (var i = 0; i < config.member_names.length; i++) {
                 var btn = document.getElementById("member-btn-" + i);
                 if (btn) {
                     if (i === currentMemberIdx) {
                         btn.classList.add("active");
-                        // Scrollt das Panel automatisch mit, falls der aktive Button ausserhalb des Sichtfelds liegt
                         btn.scrollIntoView({ block: "nearest", behavior: "smooth" });
                     } else {
                         btn.classList.remove("active");
@@ -681,8 +604,7 @@
             if (zoom > 8 && zoom <= 10) step = 16;
             else if (zoom > 10 && zoom <= 11) step = 8;
             else if (zoom == 12) step = 4;
-            else orient = 2;
-            if (zoom == 13) step = 2;
+            else if (zoom == 13) step = 2;
             else if (zoom >= 14) step = 1;
 
             var speeds = arrowData.s;
