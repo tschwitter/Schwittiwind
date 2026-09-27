@@ -271,12 +271,13 @@
                 padding: 10px 12px;
             }
 
-            /* Läufe-Panel auf Smartphones verkleinern und Titel ausblenden */
+            /* Läufe-Panel auf Smartphones verkleinern, Titel ausblenden & Höhe anpassen */
             .member-panel {
-                top: 20px; /* Höher ansetzen da keine Titel */
+                top: 20px; 
                 right: 10px;
-                bottom: 145px;
-                width: 55px; /* Ultra schmal! */
+                bottom: auto; /* <--- UPGRADE: Verhindert unendliche Länge nach unten! */
+                max-height: calc(100% - 175px); /* <--- UPGRADE: Passt sich exakt an die Buttons an! */
+                width: 55px; 
                 padding: 6px 2px;
             }
             .member-panel-title, .member-section-title {
@@ -444,7 +445,6 @@
             hauptContainer.innerHTML = "";
             ensembleContainer.innerHTML = "";
             
-            // Erkennt automatisch, ob die Seite auf dem Smartphone geöffnet ist
             var isMobile = window.innerWidth <= 768;
 
             config.member_names.forEach((name, idx) => {
@@ -483,15 +483,12 @@
                 const timesRes = await fetch('data/times.json');
                 times = await timesRes.json();
 
-                // 1. Slider-Bereich konfigurieren
                 var slider = document.getElementById("timeSlider");
                 slider.max = times.length - 1;
 
-                // 2. Wochentags-Buttons & Läufe-Panel initialisieren
                 initDayButtons();
                 initMemberPanel();
 
-                // 3. Karte initialisieren
                 var swisstopo_url = "https://wmts.geo.admin.ch/1.0.0/ch.swisstopo.pixelkarte-farbe/default/current/3857/{z}/{x}/{y}.jpeg";
                 map = L.map('map', {
                     center: [46.8182, 8.2275],
@@ -519,7 +516,6 @@
                     else if (event.key === "ArrowDown") { event.preventDefault(); navDown(); }
                 });
 
-                // Bei Bildschirm-Grössenänderung (z.B. Handy drehen) die Buttons neu beschriften
                 window.onresize = function() {
                     initMemberPanel();
                     updateForecast(currentMemberIdx, currentStepIdx);
@@ -562,11 +558,9 @@
             var refTimeHour = refParts[1].split(":")[0];
             var formattedRef = "🕒" + refDateParts[0] + "." + refDateParts[1] + " " + refTimeHour + "Z CH1";
 
-            // UI aktualisieren
             document.getElementById("currentStepLabel").innerText = formattedLT;
             document.getElementById("modelRunLabel").innerText = formattedRef;
 
-            // Wochentags-Button-Aktivierung aktualisieren
             var day = parseInt(dateParts[0]);
             var month = parseInt(dateParts[1]) - 1;
             var year = parseInt(dateParts[2]);
@@ -584,7 +578,6 @@
                 }
             });
 
-            // Läufe-Panel-Aktivierung aktualisieren & Scroll-to-View
             for (var i = 0; i < config.member_names.length; i++) {
                 var btn = document.getElementById("member-btn-" + i);
                 if (btn) {
