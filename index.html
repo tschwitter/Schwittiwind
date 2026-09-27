@@ -10,7 +10,7 @@
         #map { width: 100%; height: 100%; z-index: 1; }
         .wind-arrow-icon { background: transparent !important; border: none !important; box-shadow: none !important; }
         
-        /* Info-Box (PC Standard-Layout) */
+        /* Info-Box (Links oben) */
         .info-box { 
             position: fixed; 
             top: 20px; 
@@ -52,33 +52,150 @@
             font-weight: bold;
         }
         #toggleInfoBtn:active { background: #205080; }
-        
-        /* Klasse zum Einklappen der Info-Box */
         .info-box.collapsed .info-table { display: none; }
         .info-box.collapsed { width: 220px; }
 
-        /* Slider-Container (PC Standard-Layout) */
-        .slider-container { 
-            position: fixed; 
-            bottom: 30px; 
-            left: 50%; 
-            transform: translateX(-50%); 
-            width: 55%; 
-            max-width: 500px; 
-            background-color: rgba(33, 43, 54, 0.9); 
-            border: 1px solid rgba(255,255,255,0.15); 
-            border-radius: 8px; 
-            padding: 12px 18px; 
-            z-index: 9999; 
-            box-shadow: 4px 4px 15px rgba(0,0,0,0.5); 
-            font-family: Arial, sans-serif; 
-            color: white; 
-            box-sizing: border-box; 
+        /* --- NEUES UNIFIED KONTROLLZENTRUM (Unten Mitte) --- */
+        .control-panel {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 90%;
+            max-width: 500px;
+            background-color: rgba(33, 43, 54, 0.9);
+            border: 1px solid rgba(255,255,255,0.15);
+            border-radius: 10px;
+            padding: 12px 16px;
+            z-index: 9999;
+            box-shadow: 4px 4px 15px rgba(0,0,0,0.5);
+            font-family: Arial, sans-serif;
+            color: white;
+            box-sizing: border-box;
         }
-        .slider-title { font-weight: bold; font-size: 13px; margin-bottom: 6px; text-align: center; letter-spacing: 0.5px; }
-        #timeSlider { width: 100%; cursor: pointer; accent-color: #337ab7; margin-bottom: 6px; }
-        #currentStepLabel { font-size: 12px; font-weight: bold; text-align: center; color: #5cd184; }
-        
+
+        /* Wochentags-Buttons */
+        .day-buttons-row {
+            display: flex;
+            justify-content: space-between;
+            gap: 6px;
+            margin-bottom: 12px;
+        }
+        .day-btn {
+            flex: 1;
+            background: white;
+            border: none;
+            border-radius: 6px;
+            color: black;
+            font-weight: bold;
+            font-size: 13px;
+            padding: 6px 0;
+            cursor: pointer;
+            text-align: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            transition: background 0.2s;
+        }
+        .day-btn.active {
+            background: #007ab7;
+            color: white;
+        }
+
+        /* Haupt-Steuerungszeile */
+        .main-controls-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+
+        /* Zeit-Tasten (Links / Rechts vom Slider) */
+        .nav-btn {
+            width: 36px;
+            height: 36px;
+            background: white;
+            border: none;
+            border-radius: 6px;
+            color: black;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            font-size: 16px;
+            font-weight: bold;
+        }
+        .nav-btn:active { background: #eee; }
+
+        /* Der Slider mit dickem weissem Thumb */
+        #timeSlider {
+            -webkit-appearance: none;
+            appearance: none;
+            background: #007ab7;
+            height: 6px;
+            border-radius: 3px;
+            outline: none;
+            flex-grow: 1;
+            margin: 0 12px;
+            cursor: pointer;
+        }
+        #timeSlider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 14px;
+            height: 24px;
+            border-radius: 4px;
+            background: white;
+            border: 1px solid #333;
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+        #timeSlider::-moz-range-thumb {
+            width: 14px;
+            height: 24px;
+            border-radius: 4px;
+            background: white;
+            border: 1px solid #333;
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+
+        /* Member-Tasten übereinander (Rechts aussen) */
+        .member-nav-stack {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            margin-left: 8px;
+        }
+        .member-stack-btn {
+            width: 28px;
+            height: 18px;
+            background: white;
+            border: 1px solid #ccc;
+            border-radius: 3px;
+            color: black;
+            font-size: 9px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            padding: 0;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.2);
+        }
+        .member-stack-btn:active { background: #eee; }
+
+        /* Zeitleisten-Labels (Ganz unten im Panel) */
+        .bottom-labels-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            font-weight: bold;
+            color: white;
+            padding: 0 4px;
+        }
+        #currentStepLabel { color: white; }
+        #modelRunLabel { color: white; }
+
         /* Legende (PC Standard-Layout) */
         .legend-box { 
             position: fixed; 
@@ -102,12 +219,8 @@
         .legend-labels { position: absolute; left: 35px; top: -7px; height: 214px; font-size: 12px; font-weight: bold; line-height: 1; display: flex; flex-direction: column; justify-content: space-between; }
         #loadingIndicator { display: none; text-align: center; margin-top: 8px; font-size: 11px; font-weight: bold; color: #d9534f; }
 
-        /* --- MOBILES TOUCH-STEUERKREUZ (D-Pad) --- */
-        .touch-controls { display: none; } /* Standardmäßig auf PC unsichtbar */
-
         /* ================= RESPONSIVE DESIGN (SMARTPHONES) ================= */
         @media (max-width: 768px) {
-            /* Info-Box oben platzieren, lässt links Platz für Zoom-Buttons */
             .info-box {
                 top: 10px;
                 left: 50px;
@@ -119,22 +232,20 @@
             .info-box h3 { font-size: 13px; margin-bottom: 4px; }
             .info-box.collapsed { width: auto; }
             
-            /* Slider ganz nach unten über die volle Breite */
-            .slider-container {
+            /* Kontrollzentrum ganz nach unten über die volle Breite */
+            .control-panel {
                 bottom: 10px;
                 left: 10px;
                 right: 10px;
                 width: auto;
                 transform: none;
                 max-width: none;
-                padding: 8px 12px;
+                padding: 10px 12px;
             }
-            .slider-title { font-size: 11px; margin-bottom: 4px; }
-            #currentStepLabel { font-size: 11px; }
 
-            /* Legende verkleinern und über den Slider rechts platzieren */
+            /* Legende verkleinern und über das Kontrollzentrum rechts platzieren */
             .legend-box {
-                bottom: 85px;
+                bottom: 145px;
                 right: 10px;
                 padding: 8px 6px 5px 6px;
                 width: 65px;
@@ -143,38 +254,6 @@
             .legend-scale { height: 140px; }
             .legend-bar { width: 15px; height: 140px; }
             .legend-labels { left: 22px; height: 150px; font-size: 9px; }
-
-            /* --- TOUCH-STEUERKREUZ EINBLENDEN (Unten Links) --- */
-            .touch-controls {
-                display: grid;
-                grid-template-columns: repeat(3, 38px);
-                grid-template-rows: repeat(3, 38px);
-                gap: 4px;
-                position: fixed;
-                bottom: 85px;
-                left: 10px;
-                z-index: 9999;
-            }
-            .touch-btn {
-                width: 38px;
-                height: 38px;
-                background-color: rgba(33, 43, 54, 0.9);
-                border: 1px solid rgba(255,255,255,0.15);
-                border-radius: 50%;
-                color: white;
-                font-size: 15px;
-                font-weight: bold;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                cursor: pointer;
-                box-shadow: 2px 2px 8px rgba(0,0,0,0.4);
-                user-select: none;
-                -webkit-user-select: none;
-            }
-            .touch-btn:active {
-                background-color: #337ab7;
-            }
         }
     </style>
 </head>
@@ -210,19 +289,34 @@
         <div id="loadingIndicator">Lade Wetterdaten...</div>
     </div>
 
-    <!-- Virtuelles Touch-Steuerkreuz (D-Pad) für Smartphones -->
-    <div class="touch-controls">
-        <div style="grid-column: 2; grid-row: 1;"><button class="touch-btn" onclick="navUp()">▲</button></div>
-        <div style="grid-column: 1; grid-row: 2;"><button class="touch-btn" onclick="navLeft()">◀</button></div>
-        <div style="grid-column: 3; grid-row: 2;"><button class="touch-btn" onclick="navRight()">▶</button></div>
-        <div style="grid-column: 2; grid-row: 3;"><button class="touch-btn" onclick="navDown()">▼</button></div>
-    </div>
+    <!-- --- NEUES KONTROLLZENTRUM (Unten Mitte) --- -->
+    <div class="control-panel">
+        <!-- Dynamische Wochentags-Buttons -->
+        <div class="day-buttons-row" id="dayButtonsContainer"></div>
 
-    <!-- Slider -->
-    <div class="slider-container">
-        <div class="slider-title">PROGNOSESTUNDEN (← / →) | MEMBERS (↑ / ↓)</div>
-        <input type="range" id="timeSlider" min="0" max="0" value="0">
-        <div id="currentStepLabel">+0h</div>
+        <!-- Haupt-Steuerungszeile -->
+        <div class="main-controls-row">
+            <!-- Linker Zeitpfeil -->
+            <button class="nav-btn" onclick="navLeft()">◀</button>
+            
+            <!-- Der Slider -->
+            <input type="range" id="timeSlider" min="0" max="0" value="0">
+            
+            <!-- Rechter Zeitpfeil -->
+            <button class="nav-btn" onclick="navRight()">▶</button>
+
+            <!-- Member-Tasten übereinander -->
+            <div class="member-nav-stack">
+                <button class="member-stack-btn" onclick="navUp()">▲</button>
+                <button class="member-stack-btn" onclick="navDown()">▼</button>
+            </div>
+        </div>
+
+        <!-- Labels ganz unten -->
+        <div class="bottom-labels-row">
+            <span id="currentStepLabel">Wird geladen...</span>
+            <span id="modelRunLabel">🕒 Wird geladen...</span>
+        </div>
     </div>
 
     <!-- Legende -->
@@ -257,6 +351,10 @@
         var cacheContours = {};
         var cacheArrows = {};
 
+        var uniqueDays = [];
+        var dayFirstIndices = {};
+        var weekdays = ["So", "Mo", "Di", "Mi", "Do", "Fr", "Sa"];
+
         // Info-Box einklappen/ausklappen
         function toggleInfoBox() {
             var box = document.querySelector(".info-box");
@@ -269,7 +367,7 @@
             }
         }
 
-        // Touch-Navigations-Funktionen
+        // Navigations-Funktionen (Zeit)
         function navLeft() {
             var newStep = Math.max(0, currentStepIdx - 1);
             if (newStep !== currentStepIdx) updateForecast(currentMemberIdx, newStep);
@@ -278,6 +376,8 @@
             var newStep = Math.min(times.length - 1, currentStepIdx + 1);
             if (newStep !== currentStepIdx) updateForecast(currentMemberIdx, newStep);
         }
+
+        // Navigations-Funktionen (Members)
         function navUp() {
             var newMember = Math.max(0, currentMemberIdx - 1);
             if (newMember !== currentMemberIdx) updateForecast(newMember, currentStepIdx);
@@ -285,6 +385,38 @@
         function navDown() {
             var newMember = Math.min(config.member_names.length - 1, currentMemberIdx + 1);
             if (newMember !== currentMemberIdx) updateForecast(newMember, currentStepIdx);
+        }
+
+        // Dynamische Wochentags-Buttons generieren
+        function initDayButtons() {
+            var container = document.getElementById("dayButtonsContainer");
+            container.innerHTML = "";
+            uniqueDays = [];
+            dayFirstIndices = {};
+            
+            times.forEach((t, idx) => {
+                // Parse date "DD.MM.YYYY"
+                var dateParts = t.local_str.split(" ")[0].split(".");
+                var day = parseInt(dateParts[0]);
+                var month = parseInt(dateParts[1]) - 1;
+                var year = parseInt(dateParts[2]);
+                var dateObj = new Date(year, month, day);
+                var dayName = weekdays[dateObj.getDay()];
+                
+                if (!uniqueDays.includes(dayName)) {
+                    uniqueDays.push(dayName);
+                    dayFirstIndices[dayName] = idx;
+                    
+                    var btn = document.createElement("button");
+                    btn.className = "day-btn";
+                    btn.id = "day-btn-" + dayName;
+                    btn.innerText = dayName;
+                    btn.onclick = function() {
+                        updateForecast(currentMemberIdx, dayFirstIndices[dayName]);
+                    };
+                    container.appendChild(btn);
+                }
+            });
         }
 
         async function fetchAndDecompress(url) {
@@ -304,7 +436,7 @@
                 const timesRes = await fetch('data/times.json');
                 times = await timesRes.json();
 
-                document.getElementById("infoBoxRef").innerText = config.ref_time_utc;
+                // 1. Befülle Dropdown
                 var select = document.getElementById("memberSelect");
                 select.innerHTML = "";
                 config.member_names.forEach((name, idx) => {
@@ -314,9 +446,14 @@
                     select.appendChild(opt);
                 });
 
+                // 2. Slider-Bereich konfigurieren
                 var slider = document.getElementById("timeSlider");
                 slider.max = times.length - 1;
 
+                // 3. Wochentags-Buttons initialisieren
+                initDayButtons();
+
+                // 4. Karte initialisieren
                 var swisstopo_url = "https://wmts.geo.admin.ch/1.0.0/ch.swisstopo.pixelkarte-farbe/default/current/3857/{z}/{x}/{y}.jpeg";
                 map = L.map('map', {
                     center: [46.8182, 8.2275],
@@ -345,7 +482,6 @@
                     else if (event.key === "ArrowDown") { event.preventDefault(); navDown(); }
                 });
 
-                // Auf Smartphones die Info-Box standardmässig einklappen
                 if (window.innerWidth <= 768) {
                     toggleInfoBox();
                 }
@@ -377,10 +513,45 @@
             }
 
             var tInfo = times[currentStepIdx];
-            document.getElementById("currentStepLabel").innerText = "+" + tInfo.step_hours + "h (" + tInfo.local_str + ")";
+            
+            // --- FORMATIERUNG DER ZEITEN (Exakt wie im Screenshot) ---
+            // A) Aktive lokale Zeit (z.B. "27.09. 16:00 LT")
+            var parts = tInfo.local_str.split(" ");
+            var dateParts = parts[0].split(".");
+            var formattedLT = dateParts[0] + "." + dateParts[1] + " " + parts[1].substring(0, 5) + " LT";
+            
+            // B) Modelllauf Referenzzeit (z.B. "🕒27.09. 12Z CH1")
+            var refParts = config.ref_time_utc.split(" ");
+            var refDateParts = refParts[0].split(".");
+            var refTimeHour = refParts[1].split(":")[0];
+            var formattedRef = "🕒" + refDateParts[0] + "." + refDateParts[1] + " " + refTimeHour + "Z CH1";
+
+            // UI aktualisieren
+            document.getElementById("currentStepLabel").innerText = formattedLT;
+            document.getElementById("modelRunLabel").innerText = formattedRef;
+            
+            document.getElementById("infoBoxRef").innerText = config.ref_time_utc;
             document.getElementById("infoBoxStep").innerText = "+" + tInfo.step_hours + " Std.";
             document.getElementById("infoBoxValid").innerText = tInfo.local_str;
             document.getElementById("infoBoxMember").innerText = config.member_names[currentMemberIdx];
+
+            // Wochentags-Button-Aktivierung aktualisieren
+            var day = parseInt(dateParts[0]);
+            var month = parseInt(dateParts[1]) - 1;
+            var year = parseInt(dateParts[2]);
+            var dateObj = new Date(year, month, day);
+            var currentDayName = weekdays[dateObj.getDay()];
+
+            uniqueDays.forEach(dayName => {
+                var btn = document.getElementById("day-btn-" + dayName);
+                if (btn) {
+                    if (dayName === currentDayName) {
+                        btn.classList.add("active");
+                    } else {
+                        btn.classList.remove("active");
+                    }
+                }
+            });
 
             if (contourLayer) { map.removeLayer(contourLayer); }
             contourLayer = L.geoJson(cacheContours[cacheKey], {
