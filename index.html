@@ -275,8 +275,8 @@
             .member-panel {
                 top: 20px; 
                 right: 10px;
-                bottom: auto; /* <--- UPGRADE: Verhindert unendliche Länge nach unten! */
-                max-height: calc(100% - 175px); /* <--- UPGRADE: Passt sich exakt an die Buttons an! */
+                bottom: auto; 
+                max-height: calc(100% - 175px); 
                 width: 55px; 
                 padding: 6px 2px;
             }
@@ -384,7 +384,7 @@
         var cacheArrows = {};
 
         var uniqueDays = [];
-        var dayFirstIndices = {};
+        var dayBestIndices = {}; // <--- UPGRADE: Speichert den besten Mittags-Index pro Tag
         var weekdays = ["So", "Mo", "Di", "Mi", "Do", "Fr", "Sa"];
 
         // Navigations-Funktionen (Zeit)
@@ -407,12 +407,12 @@
             if (newMember !== currentMemberIdx) updateForecast(newMember, currentStepIdx);
         }
 
-        // Dynamische Wochentags-Buttons generieren
+        // Dynamische Wochentags-Buttons generieren (Mit intelligentem Mittags-Target!)
         function initDayButtons() {
             var container = document.getElementById("dayButtonsContainer");
             container.innerHTML = "";
             uniqueDays = [];
-            dayFirstIndices = {};
+            dayBestIndices = {};
             
             times.forEach((t, idx) => {
                 var dateParts = t.local_str.split(" ")[0].split(".");
@@ -422,19 +422,34 @@
                 var dateObj = new Date(year, month, day);
                 var dayName = weekdays[dateObj.getDay()];
                 
+                var timePart = t.local_str.split(" ")[1];
+                var hour = parseInt(timePart.split(":")[0]);
+                
+                // Falls wir den Tag noch nicht gesehen haben, initialisieren wir ihn
                 if (!uniqueDays.includes(dayName)) {
                     uniqueDays.push(dayName);
-                    dayFirstIndices[dayName] = idx;
-                    
-                    var btn = document.createElement("button");
-                    btn.className = "day-btn";
-                    btn.id = "day-btn-" + dayName;
-                    btn.innerText = dayName;
-                    btn.onclick = function() {
-                        updateForecast(currentMemberIdx, dayFirstIndices[dayName]);
-                    };
-                    container.appendChild(btn);
+                    dayBestIndices[dayName] = idx; // Standard: Erster Zeitschritt des Tages
                 }
+                
+                // Abstandsrechnung: Wir suchen den Schritt, der am nächsten an 12:00 Uhr LT liegt!
+                var currentBestIdx = dayBestIndices[dayName];
+                var currentBestHour = parseInt(times[currentBestIdx].local_str.split(" ")[1].split(":")[0]);
+                
+                if (Math.abs(hour - 12) < Math.abs(currentBestHour - 12)) {
+                    dayBestIndices[dayName] = idx;
+                }
+            });
+            
+            // Buttons erstellen
+            uniqueDays.forEach(dayName => {
+                var btn = document.createElement("button");
+                btn.className = "day-btn";
+                btn.id = "day-btn-" + dayName;
+                btn.innerText = dayName;
+                btn.onclick = function() {
+                    updateForecast(currentMemberIdx, dayBestIndices[dayName]);
+                };
+                container.appendChild(btn);
             });
         }
 
@@ -483,12 +498,15 @@
                 const timesRes = await fetch('data/times.json');
                 times = await timesRes.json();
 
+                // 1. Slider-Bereich konfigurieren
                 var slider = document.getElementById("timeSlider");
                 slider.max = times.length - 1;
 
+                // 2. Wochentags-Buttons & Läufe-Panel initialisieren
                 initDayButtons();
                 initMemberPanel();
 
+                // 3. Karte initialisieren
                 var swisstopo_url = "https://wmts.geo.admin.ch/1.0.0/ch.swisstopo.pixelkarte-farbe/default/current/3857/{z}/{x}/{y}.jpeg";
                 map = L.map('map', {
                     center: [46.8182, 8.2275],
