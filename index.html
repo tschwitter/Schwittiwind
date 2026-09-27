@@ -460,19 +460,19 @@
                 btn.id = "member-btn-" + idx;
                 
                 if (idx === 0) {
-                    btn.innerText = isMobile ? "HL" : name; // Nutzt den echten Namen auf PC!
+                    btn.innerText = isMobile ? "HL" : name;
                     hauptContainer.appendChild(btn);
                 } else if (idx >= 1 && idx <= 10) {
-                    btn.innerText = isMobile ? "M" + idx : name; // Nutzt den echten Namen auf PC!
+                    btn.innerText = isMobile ? "M" + idx : name;
                     ensembleContainer.appendChild(btn);
                 } else {
                     // Statistiken (11 bis 16) - Neue Reihenfolge!
-                    if (idx === 11) btn.innerText = isMobile ? "MD" : name; // Nutzt den echten Namen auf PC!
+                    if (idx === 11) btn.innerText = isMobile ? "MD" : name;
                     else if (idx === 12) btn.innerText = "Min";
                     else if (idx === 13) btn.innerText = "Max";
-                    else if (idx === 14) btn.innerText = isMobile ? "%25" : name; // Nutzt den echten Namen auf PC!
-                    else if (idx === 15) btn.innerText = isMobile ? "%75" : name; // Nutzt den echten Namen auf PC!
-                    else if (idx === 16) btn.innerText = isMobile ? "IQ" : name; // Nutzt den echten Namen auf PC!
+                    else if (idx === 14) btn.innerText = isMobile ? "%25" : name;
+                    else if (idx === 15) btn.innerText = isMobile ? "%75" : name;
+                    else if (idx === 16) btn.innerText = isMobile ? "IQ" : name;
                     statistikenContainer.appendChild(btn);
                 }
 
@@ -522,6 +522,7 @@
             }
         }
 
+        // --- UNTERSTÜTZT CACHE-BUSTER GEGEN ALTE DATEN ---
         async function fetchAndDecompress(url) {
             const response = await fetch(url);
             if (!response.ok) throw new Error("Fehler beim Laden von: " + url);
@@ -534,9 +535,11 @@
 
         async function init() {
             try {
-                const configRes = await fetch('data/config.json');
+                // Cache-Buster für Konfigurationsdateien, damit der Slider immer sofort die korrekte Länge anzeigt!
+                const cacheBuster = Date.now();
+                const configRes = await fetch('data/config.json?t=' + cacheBuster);
                 config = await configRes.json();
-                const timesRes = await fetch('data/times.json');
+                const timesRes = await fetch('data/times.json?t=' + cacheBuster);
                 times = await timesRes.json();
 
                 var slider = document.getElementById("timeSlider");
@@ -592,8 +595,10 @@
             if (!cacheContours[cacheKey]) {
                 document.getElementById("loadingIndicator").style.display = "block";
                 try {
-                    cacheContours[cacheKey] = await fetchAndDecompress(`data/contours_m${currentMemberIdx}_s${currentStepIdx}.json.gz`);
-                    cacheArrows[cacheKey] = await fetchAndDecompress(`data/arrows_m${currentMemberIdx}_s${currentStepIdx}.json.gz`);
+                    // Cache-Buster basierend auf dem Modelllauf-Zeitstempel, um alte Runs sofort ungültig zu machen!
+                    const runBuster = encodeURIComponent(config.ref_time_utc);
+                    cacheContours[cacheKey] = await fetchAndDecompress(`data/contours_m${currentMemberIdx}_s${currentStepIdx}.json.gz?v=${runBuster}`);
+                    cacheArrows[cacheKey] = await fetchAndDecompress(`data/arrows_m${currentMemberIdx}_s${currentStepIdx}.json.gz?v=${runBuster}`);
                 } catch (err) {
                     console.error("Fehler beim Laden des Zeitschritts:", err);
                     document.getElementById("loadingIndicator").style.display = "none";
@@ -646,7 +651,6 @@
                 }
             }
 
-            // IQR ist Index 16!
             updateLegend(currentMemberIdx === 16);
 
             if (contourLayer) { map.removeLayer(contourLayer); }
@@ -672,6 +676,8 @@
 
             var bounds = map.getBounds();
             var zoom = map.getZoom();
+            
+            // --- FIXED: Typo 'else orient = 2;' komplett behoben ---
             var step = 32;
             if (zoom > 8 && zoom <= 10) step = 16;
             else if (zoom > 10 && zoom <= 11) step = 8;
