@@ -255,7 +255,7 @@
         }
         .legend-title { font-weight: bold; font-size: 14px; text-align: center; margin-bottom: 8px; letter-spacing: 0.5px; }
         .legend-scale { position: relative; height: 200px; display: flex; flex-direction: column; }
-        .legend-bar { width: 25px; height: 200px; display: flex; flex-direction: column; border-radius: 3px; overflow: hidden; border: 1.5px solid rgba(0,0,0,0.5); }
+        .legend-bar { width: 25px; height: 200px; display: flex; flex-direction: column; border-radius: 3px; overflow: hidden; border: 1.5px solid rgba(0,0,0,0.5) !important; }
         .legend-labels { position: absolute; left: 35px; top: -7px; height: 214px; font-size: 12px; font-weight: bold; line-height: 1; display: flex; flex-direction: column; justify-content: space-between; }
 
         /* ================= RESPONSIVE DESIGN (SMARTPHONES) ================= */
@@ -353,24 +353,15 @@
         </div>
     </div>
 
-    <!-- Legende -->
+    <!-- Legende (Inklusive IDs für dynamische Skalen-Anpassung!) -->
     <div class="legend-box">
         <div class="legend-title">km/h</div>
         <div class="legend-scale">
-            <div class="legend-bar">
-                <div style="background-color: #2d21a9; flex: 1;"></div>
-                <div style="background-color: #7a0fd1; flex: 1;"></div>
-                <div style="background-color: #9c285e; flex: 1;"></div>
-                <div style="background-color: #eb4d3c; flex: 1;"></div>
-                <div style="background-color: #fca643; flex: 1;"></div>
-                <div style="background-color: #fed148; flex: 1;"></div>
-                <div style="background-color: #89db4c; flex: 1;"></div>
-                <div style="background-color: #5cd184; flex: 1;"></div>
-                <div style="background-color: #baddf3; flex: 1;"></div>
-                <div style="background-color: #f1f6ff; flex: 1;"></div>
+            <div class="legend-bar" id="legendBar">
+                <!-- Wird via JS dynamisch befüllt -->
             </div>
-            <div class="legend-labels">
-                <div>+</div><div>45</div><div>36</div><div>27</div><div>23</div><div>18</div><div>14</div><div>11</div><div>7</div><div>4</div><div>0</div>
+            <div class="legend-labels" id="legendLabels">
+                <!-- Wird via JS dynamisch befüllt -->
             </div>
         </div>
     </div>
@@ -452,7 +443,7 @@
             });
         }
 
-        // Läufe-Panel befüllen (Inklusive HL / M1 / MD / %25 / IQ Mobile-Optimierung!)
+        // Läufe-Panel befüllen (Inklusive HL / M1 / MD / %25 / IQ / Min / Max Mobile-Optimierung!)
         function initMemberPanel() {
             var hauptContainer = document.getElementById("hauptlaufContainer");
             var ensembleContainer = document.getElementById("ensembleContainer");
@@ -475,11 +466,13 @@
                     btn.innerText = isMobile ? "M" + idx : "Member " + idx;
                     ensembleContainer.appendChild(btn);
                 } else {
-                    // Statistiken (11 bis 14)
+                    // Statistiken (11 bis 16)
                     if (idx === 11) btn.innerText = isMobile ? "MD" : "Median";
                     else if (idx === 12) btn.innerText = isMobile ? "%25" : "25% Quantil";
                     else if (idx === 13) btn.innerText = isMobile ? "%75" : "75% Quantil";
                     else if (idx === 14) btn.innerText = isMobile ? "IQ" : "Interquantil";
+                    else if (idx === 15) btn.innerText = "Min";
+                    else if (idx === 16) btn.innerText = "Max";
                     statistikenContainer.appendChild(btn);
                 }
 
@@ -487,6 +480,48 @@
                     updateForecast(idx, currentStepIdx);
                 };
             });
+        }
+
+        // --- NEU: DYNAMISCHE FARBLEGENDE (Passt sich bei IQ automatisch an!) ---
+        function updateLegend(isIQR) {
+            var legendBar = document.getElementById("legendBar");
+            var legendLabels = document.getElementById("legendLabels");
+            
+            if (isIQR) {
+                // Feine, hochauflösende 0-30 km/h Skala für den Interquantilabstand (Unsicherheit)
+                legendBar.innerHTML = `
+                    <div style="background-color: #d7301f; flex: 1;"></div>
+                    <div style="background-color: #ec7014; flex: 1;"></div>
+                    <div style="background-color: #fe9929; flex: 1;"></div>
+                    <div style="background-color: #fec44f; flex: 1;"></div>
+                    <div style="background-color: #2b8cbe; flex: 1;"></div>
+                    <div style="background-color: #4eb3d3; flex: 1;"></div>
+                    <div style="background-color: #7bccc4; flex: 1;"></div>
+                    <div style="background-color: #a8ddb5; flex: 1;"></div>
+                    <div style="background-color: #e0f3db; flex: 1;"></div>
+                    <div style="background-color: #ffffff00; flex: 1;"></div>
+                `;
+                legendLabels.innerHTML = `
+                    <div>+</div><div>30</div><div>20</div><div>15</div><div>12</div><div>10</div><div>8</div><div>6</div><div>4</div><div>2</div><div>0</div>
+                `;
+            } else {
+                // Standard-Farbskala (0 bis 45+ km/h) für alle anderen Karten
+                legendBar.innerHTML = `
+                    <div style="background-color: #2d21a9; flex: 1;"></div>
+                    <div style="background-color: #7a0fd1; flex: 1;"></div>
+                    <div style="background-color: #9c285e; flex: 1;"></div>
+                    <div style="background-color: #eb4d3c; flex: 1;"></div>
+                    <div style="background-color: #fca643; flex: 1;"></div>
+                    <div style="background-color: #fed148; flex: 1;"></div>
+                    <div style="background-color: #89db4c; flex: 1;"></div>
+                    <div style="background-color: #5cd184; flex: 1;"></div>
+                    <div style="background-color: #baddf3; flex: 1;"></div>
+                    <div style="background-color: #f1f6ff; flex: 1;"></div>
+                `;
+                legendLabels.innerHTML = `
+                    <div>+</div><div>45</div><div>36</div><div>27</div><div>23</div><div>18</div><div>14</div><div>11</div><div>7</div><div>4</div><div>0</div>
+                `;
+            }
         }
 
         async function fetchAndDecompress(url) {
@@ -584,6 +619,7 @@
             document.getElementById("currentStepLabel").innerText = formattedLT;
             document.getElementById("modelRunLabel").innerText = formattedRef;
 
+            // Wochentags-Button-Aktivierung aktualisieren
             var day = parseInt(dateParts[0]);
             var month = parseInt(dateParts[1]) - 1;
             var year = parseInt(dateParts[2]);
@@ -614,6 +650,9 @@
                 }
             }
 
+            // --- NEU: DYNAMISCHE FARBLEGENDE AKTUALISIEREN ---
+            updateLegend(currentMemberIdx === 14);
+
             if (contourLayer) { map.removeLayer(contourLayer); }
             contourLayer = L.geoJson(cacheContours[cacheKey], {
                 style: function(feature) {
@@ -628,7 +667,7 @@
             if (!map || !config) return;
             if (!activeMarkers) { activeMarkers = L.layerGroup().addTo(map); } else { activeMarkers.clearLayers(); }
             
-            // --- PFEIL-SPERRE FÜR STATISTIKEN (Member >= 11) ---
+            // --- PFEIL-SPERRE FÜR ALLE STATISTIKEN (Member >= 11) ---
             if (currentMemberIdx >= 11) return;
 
             const cacheKey = currentMemberIdx + "_" + currentStepIdx;
