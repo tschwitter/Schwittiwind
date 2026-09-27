@@ -235,11 +235,12 @@
         #currentStepLabel { color: white; }
         #modelRunLabel { color: white; }
 
-        /* Legende (PC Standard-Layout) */
+        /* Legende (PC Standard-Layout - JETZT UNTEN LINKS!) */
         .legend-box { 
             position: fixed; 
             bottom: 30px; 
-            right: 190px; /* Verschoben nach links, um Platz für das Läufe-Panel zu machen */
+            left: 20px; 
+            right: auto;
             z-index: 9999; 
             background-color: rgba(33, 43, 54, 0.85); 
             border: 1px solid rgba(255,255,255,0.15); 
@@ -270,22 +271,28 @@
                 padding: 10px 12px;
             }
 
-            /* Läufe-Panel auf Smartphones verkleinern */
+            /* Läufe-Panel auf Smartphones verkleinern und Titel ausblenden */
             .member-panel {
-                top: 20px;
+                top: 20px; /* Höher ansetzen da keine Titel */
                 right: 10px;
                 bottom: 145px;
-                width: 110px;
-                padding: 8px 4px;
+                width: 55px; /* Ultra schmal! */
+                padding: 6px 2px;
             }
-            .member-panel-title { font-size: 12px; margin-bottom: 6px; padding-bottom: 4px; }
-            .member-section-title { font-size: 9px; margin: 4px 0 2px 2px; }
-            .member-btn { font-size: 10px; padding: 6px 4px; }
+            .member-panel-title, .member-section-title {
+                display: none; /* Titel komplett ausblenden */
+            }
+            .member-btn {
+                font-size: 11px;
+                padding: 6px 2px;
+                margin: 2px 0;
+            }
 
-            /* Legende verkleinern und links neben das Läufe-Panel platzieren */
+            /* Legende verkleinern und symmetrisch LINKS platrieren */
             .legend-box {
                 bottom: 145px;
-                right: 130px; /* Perfekt positioniert neben dem 110px breiten Läufe-Panel */
+                left: 10px; /* Symmetrisch gegenüber dem Läufe-Panel */
+                right: auto;
                 padding: 8px 6px 5px 6px;
                 width: 65px;
             }
@@ -430,12 +437,15 @@
             });
         }
 
-        // Läufe-Panel dynamisch mit Buttons befüllen
+        // Läufe-Panel dynamisch mit Buttons befüllen (Inklusive HL / M1 / M2 Mobile-Optimierung!)
         function initMemberPanel() {
             var hauptContainer = document.getElementById("hauptlaufContainer");
             var ensembleContainer = document.getElementById("ensembleContainer");
             hauptContainer.innerHTML = "";
             ensembleContainer.innerHTML = "";
+            
+            // Erkennt automatisch, ob die Seite auf dem Smartphone geöffnet ist
+            var isMobile = window.innerWidth <= 768;
 
             config.member_names.forEach((name, idx) => {
                 var btn = document.createElement("button");
@@ -443,10 +453,10 @@
                 btn.id = "member-btn-" + idx;
                 
                 if (idx === 0) {
-                    btn.innerText = "Hauptlauf";
+                    btn.innerText = isMobile ? "HL" : "Hauptlauf";
                     hauptContainer.appendChild(btn);
                 } else {
-                    btn.innerText = "Member " + idx;
+                    btn.innerText = isMobile ? "M" + idx : "Member " + idx;
                     ensembleContainer.appendChild(btn);
                 }
 
@@ -508,6 +518,12 @@
                     else if (event.key === "ArrowUp") { event.preventDefault(); navUp(); }
                     else if (event.key === "ArrowDown") { event.preventDefault(); navDown(); }
                 });
+
+                // Bei Bildschirm-Grössenänderung (z.B. Handy drehen) die Buttons neu beschriften
+                window.onresize = function() {
+                    initMemberPanel();
+                    updateForecast(currentMemberIdx, currentStepIdx);
+                };
 
                 await updateForecast(0, 0);
             } catch (err) {
