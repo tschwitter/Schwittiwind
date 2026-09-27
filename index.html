@@ -319,6 +319,8 @@
         <div id="hauptlaufContainer"></div>
         <div class="member-section-title">Ensemble</div>
         <div id="ensembleContainer"></div>
+        <div class="member-section-title">Statistiken</div>
+        <div id="statistikenContainer"></div>
     </div>
 
     <!-- KONTROLLZENTRUM (Unten Mitte) -->
@@ -384,7 +386,7 @@
         var cacheArrows = {};
 
         var uniqueDays = [];
-        var dayBestIndices = {}; // <--- UPGRADE: Speichert den besten Mittags-Index pro Tag
+        var dayBestIndices = {};
         var weekdays = ["So", "Mo", "Di", "Mi", "Do", "Fr", "Sa"];
 
         // Navigations-Funktionen (Zeit)
@@ -425,13 +427,11 @@
                 var timePart = t.local_str.split(" ")[1];
                 var hour = parseInt(timePart.split(":")[0]);
                 
-                // Falls wir den Tag noch nicht gesehen haben, initialisieren wir ihn
                 if (!uniqueDays.includes(dayName)) {
                     uniqueDays.push(dayName);
-                    dayBestIndices[dayName] = idx; // Standard: Erster Zeitschritt des Tages
+                    dayBestIndices[dayName] = idx;
                 }
                 
-                // Abstandsrechnung: Wir suchen den Schritt, der am nächsten an 12:00 Uhr LT liegt!
                 var currentBestIdx = dayBestIndices[dayName];
                 var currentBestHour = parseInt(times[currentBestIdx].local_str.split(" ")[1].split(":")[0]);
                 
@@ -440,7 +440,6 @@
                 }
             });
             
-            // Buttons erstellen
             uniqueDays.forEach(dayName => {
                 var btn = document.createElement("button");
                 btn.className = "day-btn";
@@ -453,12 +452,14 @@
             });
         }
 
-        // Läufe-Panel dynamisch mit Buttons befüllen (Inklusive HL / M1 / M2 Mobile-Optimierung!)
+        // Läufe-Panel befüllen (Inklusive HL / M1 / MD / %25 / IQ Mobile-Optimierung!)
         function initMemberPanel() {
             var hauptContainer = document.getElementById("hauptlaufContainer");
             var ensembleContainer = document.getElementById("ensembleContainer");
+            var statistikenContainer = document.getElementById("statistikenContainer");
             hauptContainer.innerHTML = "";
             ensembleContainer.innerHTML = "";
+            statistikenContainer.innerHTML = "";
             
             var isMobile = window.innerWidth <= 768;
 
@@ -470,9 +471,16 @@
                 if (idx === 0) {
                     btn.innerText = isMobile ? "HL" : "Hauptlauf";
                     hauptContainer.appendChild(btn);
-                } else {
+                } else if (idx >= 1 && idx <= 10) {
                     btn.innerText = isMobile ? "M" + idx : "Member " + idx;
                     ensembleContainer.appendChild(btn);
+                } else {
+                    // Statistiken (11 bis 14)
+                    if (idx === 11) btn.innerText = isMobile ? "MD" : "Median";
+                    else if (idx === 12) btn.innerText = isMobile ? "%25" : "25% Quantil";
+                    else if (idx === 13) btn.innerText = isMobile ? "%75" : "75% Quantil";
+                    else if (idx === 14) btn.innerText = isMobile ? "IQ" : "Interquantil";
+                    statistikenContainer.appendChild(btn);
                 }
 
                 btn.onclick = function() {
@@ -498,15 +506,12 @@
                 const timesRes = await fetch('data/times.json');
                 times = await timesRes.json();
 
-                // 1. Slider-Bereich konfigurieren
                 var slider = document.getElementById("timeSlider");
                 slider.max = times.length - 1;
 
-                // 2. Wochentags-Buttons & Läufe-Panel initialisieren
                 initDayButtons();
                 initMemberPanel();
 
-                // 3. Karte initialisieren
                 var swisstopo_url = "https://wmts.geo.admin.ch/1.0.0/ch.swisstopo.pixelkarte-farbe/default/current/3857/{z}/{x}/{y}.jpeg";
                 map = L.map('map', {
                     center: [46.8182, 8.2275],
@@ -596,6 +601,7 @@
                 }
             });
 
+            // Läufe-Panel-Aktivierung aktualisieren & Scroll-to-View
             for (var i = 0; i < config.member_names.length; i++) {
                 var btn = document.getElementById("member-btn-" + i);
                 if (btn) {
@@ -621,6 +627,10 @@
         function drawVisibleArrows() {
             if (!map || !config) return;
             if (!activeMarkers) { activeMarkers = L.layerGroup().addTo(map); } else { activeMarkers.clearLayers(); }
+            
+            // --- PFEIL-SPERRE FÜR STATISTIKEN (Member >= 11) ---
+            if (currentMemberIdx >= 11) return;
+
             const cacheKey = currentMemberIdx + "_" + currentStepIdx;
             const arrowData = cacheArrows[cacheKey];
             if (!arrowData) return;
