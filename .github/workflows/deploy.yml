@@ -26,7 +26,7 @@ jobs:
 
       - name: Unzip Wetterdaten
         run: |
-          unzip website_daten.zip -d .
+          unzip -o website_daten.zip -d .
           rm website_daten.zip
 
       - name: Setup Pages
