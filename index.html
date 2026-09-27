@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ICON-CH1 Windprognose (10m) - Ensembles</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <style>
+        html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background-color: #141a21; }
+        #map { width: 100%; height: 100%; z-index: 1; }
+        .wind-arrow-icon { background: transparent !important; border: none !important; box-shadow: none !important; }
+        .info-box { position: fixed; top: 20px; left: 80px; width: 310px; z-index: 9999; background-color: rgba(255, 255, 255, 0.95); border: 2px solid #333; border-radius: 8px; padding: 12px; font-family: 'Helvetica Neue', Arial, sans-serif; box-shadow: 4px 4px 10px rgba(0,0,0,0.25); }
+        .info-box h3 { margin: 0 0 6px 0; color: #111; font-size: 15px; border-bottom: 2px solid #337ab7; padding-bottom: 4px; }
+        .info-table { width: 100%; font-size: 11px; border-collapse: collapse; line-height: 1.6; }
+        .info-table td { padding: 2px 0; }
+        .info-label { font-weight: bold; color: #555; }
+        .info-value { text-align: right; color: #333; font-weight: bold; }
+        #memberSelect { font-size: 11px; font-weight: bold; padding: 2px; border-radius: 4px; border: 1px solid #333; background: white; cursor: pointer; width: 150px; }
+        .slider-container { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); width: 55%; max-width: 500px; background-color: rgba(33, 43, 54, 0.9); border: 1px solid rgba(255,255,255,0.15); border-radius: 8px; padding: 12px 18px; z-index: 9999; box-shadow: 4px 4px 15px rgba(0,0,0,0.5); font-family: Arial, sans-serif; color: white; box-sizing: border-box; }
+        .slider-title { font-weight: bold; font-size: 13px; margin-bottom: 6px; text-align: center; letter-spacing: 0.5px; }
+        #timeSlider { width: 100%; cursor: pointer; accent-color: #337ab7; margin-bottom: 6px; }
+        #currentStepLabel { font-size: 12px; font-weight: bold; text-align: center; color: #5cd184; }
+        .legend-box { position: fixed; bottom: 30px; right: 20px; z-index: 9999; background-color: rgba(33, 43, 54, 0.85); border: 1px solid rgba(255,255,255,0.15); border-radius: 8px; padding: 15px 12px 10px 12px; font-family: Arial, sans-serif; color: white; box-shadow: 4px 4px 12px rgba(0,0,0,0.5); width: 85px; box-sizing: border-box; font-size: 11px; }
+        .legend-title { font-weight: bold; font-size: 14px; text-align: center; margin-bottom: 8px; letter-spacing: 0.5px; }
+        .legend-scale { position: relative; height: 200px; display: flex; flex-direction: column; }
+        .legend-bar { width: 25px; height: 200px; display: flex; flex-direction: column; border-radius: 3px; overflow: hidden; border: 1.5px solid rgba(0,0,0,0.5); }
+        .legend-labels { position: absolute; left: 35px; top: -7px; height: 214px; font-size: 12px; font-weight: bold; line-height: 1; display: flex; flex-direction: column; justify-content: space-between; }
+        #loadingIndicator { display: none; text-align: center; margin-top: 8px; font-size: 11px; font-weight: bold; color: #d9534f; }
+    </style>
+</head>
+<body>
+    <div id="map"></div>
+    <div class="info-box">
+        <h3>ICON-CH1 Windprognose (10m)</h3>
+        <table class="info-table">
+            <tr><td class="info-label">Modelllauf (Ref):</td><td id="infoBoxRef" class="info-value">Wird geladen...</td></tr>
+            <tr>
+                <td class="info-label">Auswahl Member:</td>
+                <td style="text-align: right;">
+                    <select id="memberSelect"><option>Wird geladen...</option></select>
+                </td>
+            </tr>
+            <tr style="border-top: 1px solid #eee; margin-top: 4px;">
+                <td class="info-label" style="padding-top: 4px;">Aktiver Member:</td>
+                <td id="infoBoxMember" class="info-value" style="color: #2d21a9; padding-top: 4px;">Wird geladen...</td>
+            </tr>
+            <tr><td class="info-label">Prognoseschritt:</td><td id="infoBoxStep" class="info-value" style="color: #d9534f; font-size: 12px;">+0 Std.</td></tr>
+            <tr style="border-top: 1px solid #ccc;">
+                <td class="info-label" style="padding-top: 6px; font-size: 12px; color: #111;">Gültig für:</td>
+                <td id="infoBoxValid" class="info-value" style="color: #337ab7; font-size: 12px; padding-top: 6px;">Wird geladen...</td>
+            </tr>
+        </table>
+        <div id="loadingIndicator">Lade Wetterdaten...</div>
+    </div>
+    <div class="slider-container">
+        <div class="slider-title">PROGNOSESTUNDEN (← / →) | MEMBERS (↑ / ↓)</div>
+        <input type="range" id="timeSlider" min="0" max="0" value="0">
+        <div id="currentStepLabel">+0h</div>
+    </div>
+    <div class="legend-box">
+        <div class="legend-title">km/h</div>
+        <div class="legend-scale">
+            <div class="legend-bar">
+                <div style="background-color: #2d21a9; flex: 1;"></div>
+                <div style="background-color: #7a0fd1; flex: 1;"></div>
+                <div style="background-color: #9c285e; flex: 1;"></div>
+                <div style="background-color: #eb4d3c; flex: 1;"></div>
+                <div style="background-color: #fca643; flex: 1;"></div>
+                <div style="background-color: #fed148; flex: 1;"></div>
+                <div style="background-color: #89db4c; flex: 1;"></div>
+                <div style="background-color: #5cd184; flex: 1;"></div>
+                <div style="background-color: #baddf3; flex: 1;"></div>
+                <div style="background-color: #f1f6ff; flex: 1;"></div>
+            </div>
+            <div class="legend-labels">
+                <div>+</div><div>45</div><div>36</div><div>27</div><div>23</div><div>18</div><div>14</div><div>11</div><div>7</div><div>4</div><div>0</div>
+            </div>
+        </div>
+    </div>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+        var map, config, times;
+        var currentMemberIdx = 0;
+        var currentStepIdx = 0;
+        var contourLayer = null;
+        var activeMarkers = null;
+        var cacheContours = {};
+        var cacheArrows = {};
+
+        async function fetchAndDecompress(url) {
+            const response = await fetch(url);
+            if (!response.ok) throw new Error("Fehler beim Laden von: " + url);
+            const ds = new DecompressionStream('gzip');
+            const decompressedStream = response.body.pipeThrough(ds);
+            const decompressedResponse = new Response(decompressedStream);
+            const text = await decompressedResponse.text();
+            return JSON.parse(text);
+        }
+
+        async function init() {
+            try {
+                const configRes = await fetch('data/config.json');
+                config = await configRes.json();
+                const timesRes = await fetch('data/times.json');
+                times = await timesRes.json();
+
+                document.getElementById("infoBoxRef").innerText = config.ref_time_utc;
+                var select = document.getElementById("memberSelect");
+                select.innerHTML = "";
+                config.member_names.forEach((name, idx) => {
+                    var opt = document.createElement("option");
+                    opt.value = idx;
+                    opt.innerHTML = name;
+                    select.appendChild(opt);
+                });
+
+                var slider = document.getElementById("timeSlider");
+                slider.max = times.length - 1;
+
+                var swisstopo_url = "https://wmts.geo.admin.ch/1.0.0/ch.swisstopo.pixelkarte-farbe/default/current/3857/{z}/{x}/{y}.jpeg";
+                map = L.map('map', {
+                    center: [46.8182, 8.2275],
+                    zoom: 9,
+                    minZoom: 7,
+                    maxZoom: 15,
+                    preferCanvas: true
+                });
+
+                L.tileLayer(swisstopo_url, {
+                    attribution: '&copy; <a href="https://www.swisstopo.admin.ch/">swisstopo</a>',
+                    maxZoom: 15,
+                    maxNativeZoom: 10
+                }).addTo(map);
+
+                map.on('moveend', drawVisibleArrows);
+                map.on('zoomend', drawVisibleArrows);
+
+                slider.addEventListener("input", function() { updateForecast(currentMemberIdx, this.value); });
+                select.addEventListener("change", function() { updateForecast(this.value, currentStepIdx); });
+
+                document.addEventListener('keydown', function(event) {
+                    if (event.key === "ArrowLeft") {
+                        var newStep = Math.max(0, currentStepIdx - 1);
+                        if (newStep !== currentStepIdx) updateForecast(currentMemberIdx, newStep);
+                    } else if (event.key === "ArrowRight") {
+                        var newStep = Math.min(times.length - 1, currentStepIdx + 1);
+                        if (newStep !== currentStepIdx) updateForecast(currentMemberIdx, newStep);
+                    } else if (event.key === "ArrowUp") {
+                        event.preventDefault();
+                        var newMember = Math.max(0, currentMemberIdx - 1);
+                        if (newMember !== currentMemberIdx) updateForecast(newMember, currentStepIdx);
+                    } else if (event.key === "ArrowDown") {
+                        event.preventDefault();
+                        var newMember = Math.min(config.member_names.length - 1, currentMemberIdx + 1);
+                        if (newMember !== currentMemberIdx) updateForecast(newMember, currentStepIdx);
+                    }
+                });
+
+                await updateForecast(0, 0);
+            } catch (err) {
+                console.error("Fehler beim Laden der App:", err);
+            }
+        }
+
+        async function updateForecast(newMemberIdx, newStepIdx) {
+            currentMemberIdx = parseInt(newMemberIdx);
+            currentStepIdx = parseInt(newStepIdx);
+            document.getElementById("memberSelect").value = currentMemberIdx;
+            document.getElementById("timeSlider").value = currentStepIdx;
+            const cacheKey = currentMemberIdx + "_" + currentStepIdx;
+
+            if (!cacheContours[cacheKey]) {
+                document.getElementById("loadingIndicator").style.display = "block";
+                try {
+                    cacheContours[cacheKey] = await fetchAndDecompress(`data/contours_m${currentMemberIdx}_s${currentStepIdx}.json.gz`);
+                    cacheArrows[cacheKey] = await fetchAndDecompress(`data/arrows_m${currentMemberIdx}_s${currentStepIdx}.json.gz`);
+                } catch (err) {
+                    console.error("Fehler beim Laden des Zeitschritts:", err);
+                    document.getElementById("loadingIndicator").style.display = "none";
+                    return;
+                }
+                document.getElementById("loadingIndicator").style.display = "none";
+            }
+
+            var tInfo = times[currentStepIdx];
+            document.getElementById("currentStepLabel").innerText = "+" + tInfo.step_hours + "h (" + tInfo.local_str + ")";
+            document.getElementById("infoBoxStep").innerText = "+" + tInfo.step_hours + " Std.";
+            document.getElementById("infoBoxValid").innerText = tInfo.local_str;
+            document.getElementById("infoBoxMember").innerText = config.member_names[currentMemberIdx];
+
+            if (contourLayer) { map.removeLayer(contourLayer); }
+            contourLayer = L.geoJson(cacheContours[cacheKey], {
+                style: function(feature) {
+                    return { fillColor: feature.properties.fill, color: feature.properties.stroke, weight: 0.5, fillOpacity: 0.55 };
+                }
+            }).addTo(map);
+
+            drawVisibleArrows();
+        }
+
+        function drawVisibleArrows() {
+            if (!map || !config) return;
+            if (!activeMarkers) { activeMarkers = L.layerGroup().addTo(map); } else { activeMarkers.clearLayers(); }
+            const cacheKey = currentMemberIdx + "_" + currentStepIdx;
+            const arrowData = cacheArrows[cacheKey];
+            if (!arrowData) return;
+
+            var bounds = map.getBounds();
+            var zoom = map.getZoom();
+            var step = 32;
+            if (zoom > 8 && zoom <= 10) step = 16;
+            else if (zoom > 10 && zoom <= 11) step = 8;
+            else if (zoom == 12) step = 4;
+            else if (zoom == 13) step = 2;
+            else if (zoom >= 14) step = 1;
+
+            var speeds = arrowData.s;
+            var dirs = arrowData.d;
+
+            for (var i = 0; i < speeds.length; i++) {
+                var speed = speeds[i] / 10.0;
+                if (speed < 3.0) continue;
+                var r = Math.floor(i / config.nx);
+                var c = i % config.nx;
+                if (r % step !== 0 || c % step !== 0) continue;
+                var lat = config.ymin + r * (config.ymax - config.ymin) / (config.ny - 1);
+                var lon = config.xmin + c * (config.xmax - config.xmin) / (config.nx - 1);
+                var latlng = L.latLng(lat, lon);
+
+                if (bounds.contains(latlng)) {
+                    var dir = dirs[i];
+                    var arrow_w = 6 + Math.pow(speed, 1.15) * 0.55;
+                    if (arrow_w > 35) arrow_w = 35;
+                    if (arrow_w < 8) arrow_w = 8;
+                    var arrow_h = 12 + Math.pow(speed, 1.4) * 1.0;
+                    if (arrow_h > 100) arrow_h = 100;
+                    if (arrow_h < 16) arrow_h = 16;
+
+                    var svg = '<div style="transform: rotate(' + dir + 'deg); width: 110px; height: 110px; display: flex; align-items: center; justify-content: center; transform-origin: center center;">' +
+                              '<svg viewBox="0 0 24 24" width="' + arrow_w.toFixed(1) + 'px" height="' + arrow_h.toFixed(1) + 'px" xmlns="http://www.w3.org/2000/svg">' +
+                              '<path d="M11 22 H13 V10 H17 L12 2 L7 10 H11 Z" fill="black" stroke="white" stroke-width="0.8"/>' +
+                              '</svg></div>';
+
+                    var icon = L.divIcon({ html: svg, iconSize: [110, 110], iconAnchor: [55, 55], className: 'wind-arrow-icon' });
+                    L.marker(latlng, { icon: icon }).bindPopup('<b>Wind (1km ICON-CH1):</b><br>Stärke: ' + speed.toFixed(1) + ' km/h<br>Richtung: ' + dir.toFixed(0) + '°').addTo(activeMarkers);
+                }
+            }
+        }
+        window.onload = init;
+    </script>
+</body>
+</html>
