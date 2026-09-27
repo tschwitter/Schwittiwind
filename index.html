@@ -482,13 +482,12 @@
             });
         }
 
-        // --- NEU: DYNAMISCHE FARBLEGENDE (Passt sich bei IQ automatisch an!) ---
+        // --- DYNAMISCHE FARBLEGENDE ---
         function updateLegend(isIQR) {
             var legendBar = document.getElementById("legendBar");
             var legendLabels = document.getElementById("legendLabels");
             
             if (isIQR) {
-                // Feine, hochauflösende 0-30 km/h Skala für den Interquantilabstand (Unsicherheit)
                 legendBar.innerHTML = `
                     <div style="background-color: #d7301f; flex: 1;"></div>
                     <div style="background-color: #ec7014; flex: 1;"></div>
@@ -505,7 +504,6 @@
                     <div>+</div><div>30</div><div>20</div><div>15</div><div>12</div><div>10</div><div>8</div><div>6</div><div>4</div><div>2</div><div>0</div>
                 `;
             } else {
-                // Standard-Farbskala (0 bis 45+ km/h) für alle anderen Karten
                 legendBar.innerHTML = `
                     <div style="background-color: #2d21a9; flex: 1;"></div>
                     <div style="background-color: #7a0fd1; flex: 1;"></div>
@@ -619,7 +617,6 @@
             document.getElementById("currentStepLabel").innerText = formattedLT;
             document.getElementById("modelRunLabel").innerText = formattedRef;
 
-            // Wochentags-Button-Aktivierung aktualisieren
             var day = parseInt(dateParts[0]);
             var month = parseInt(dateParts[1]) - 1;
             var year = parseInt(dateParts[2]);
@@ -637,7 +634,6 @@
                 }
             });
 
-            // Läufe-Panel-Aktivierung aktualisieren & Scroll-to-View
             for (var i = 0; i < config.member_names.length; i++) {
                 var btn = document.getElementById("member-btn-" + i);
                 if (btn) {
@@ -650,7 +646,6 @@
                 }
             }
 
-            // --- NEU: DYNAMISCHE FARBLEGENDE AKTUALISIEREN ---
             updateLegend(currentMemberIdx === 14);
 
             if (contourLayer) { map.removeLayer(contourLayer); }
