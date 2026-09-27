@@ -3,7 +3,7 @@ name: Deploy to GitHub Pages
 on:
   push:
     branches:
-      - main  # Da dein Haupt-Branch laut Screenshot "main" heisst
+      - main
 
 permissions:
   contents: read
@@ -24,8 +24,13 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Unzip Wetterdaten
+      - name: Reassemble and Unzip Wetterdaten
         run: |
+          if [ -f website_daten.zip.part_aa ]; then
+            echo "Split-Dateien gefunden. Setze ZIP-Datei zusammen..."
+            cat website_daten.zip.part_* > website_daten.zip
+            rm website_daten.zip.part_*
+          fi
           unzip -o website_daten.zip -d .
           rm website_daten.zip
 
