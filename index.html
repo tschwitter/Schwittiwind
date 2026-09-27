@@ -2,36 +2,193 @@
 <html lang="de">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>ICON-CH1 Windprognose (10m) - Ensembles</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <style>
         html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background-color: #141a21; }
         #map { width: 100%; height: 100%; z-index: 1; }
         .wind-arrow-icon { background: transparent !important; border: none !important; box-shadow: none !important; }
-        .info-box { position: fixed; top: 20px; left: 80px; width: 310px; z-index: 9999; background-color: rgba(255, 255, 255, 0.95); border: 2px solid #333; border-radius: 8px; padding: 12px; font-family: 'Helvetica Neue', Arial, sans-serif; box-shadow: 4px 4px 10px rgba(0,0,0,0.25); }
-        .info-box h3 { margin: 0 0 6px 0; color: #111; font-size: 15px; border-bottom: 2px solid #337ab7; padding-bottom: 4px; }
+        
+        /* Info-Box (PC Standard-Layout) */
+        .info-box { 
+            position: fixed; 
+            top: 20px; 
+            left: 80px; 
+            width: 310px; 
+            z-index: 9999; 
+            background-color: rgba(255, 255, 255, 0.95); 
+            border: 2px solid #333; 
+            border-radius: 8px; 
+            padding: 12px; 
+            font-family: 'Helvetica Neue', Arial, sans-serif; 
+            box-shadow: 4px 4px 10px rgba(0,0,0,0.25); 
+        }
+        .info-box h3 { 
+            margin: 0 0 6px 0; 
+            color: #111; 
+            font-size: 15px; 
+            border-bottom: 2px solid #337ab7; 
+            padding-bottom: 4px; 
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
         .info-table { width: 100%; font-size: 11px; border-collapse: collapse; line-height: 1.6; }
         .info-table td { padding: 2px 0; }
         .info-label { font-weight: bold; color: #555; }
         .info-value { text-align: right; color: #333; font-weight: bold; }
         #memberSelect { font-size: 11px; font-weight: bold; padding: 2px; border-radius: 4px; border: 1px solid #333; background: white; cursor: pointer; width: 150px; }
-        .slider-container { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); width: 55%; max-width: 500px; background-color: rgba(33, 43, 54, 0.9); border: 1px solid rgba(255,255,255,0.15); border-radius: 8px; padding: 12px 18px; z-index: 9999; box-shadow: 4px 4px 15px rgba(0,0,0,0.5); font-family: Arial, sans-serif; color: white; box-sizing: border-box; }
+        
+        /* Minimieren-Button für Info-Box */
+        #toggleInfoBtn {
+            background: #337ab7;
+            border: none;
+            color: white;
+            border-radius: 4px;
+            padding: 2px 8px;
+            font-size: 11px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        #toggleInfoBtn:active { background: #205080; }
+        
+        /* Klasse zum Einklappen der Info-Box */
+        .info-box.collapsed .info-table { display: none; }
+        .info-box.collapsed { width: 220px; }
+
+        /* Slider-Container (PC Standard-Layout) */
+        .slider-container { 
+            position: fixed; 
+            bottom: 30px; 
+            left: 50%; 
+            transform: translateX(-50%); 
+            width: 55%; 
+            max-width: 500px; 
+            background-color: rgba(33, 43, 54, 0.9); 
+            border: 1px solid rgba(255,255,255,0.15); 
+            border-radius: 8px; 
+            padding: 12px 18px; 
+            z-index: 9999; 
+            box-shadow: 4px 4px 15px rgba(0,0,0,0.5); 
+            font-family: Arial, sans-serif; 
+            color: white; 
+            box-sizing: border-box; 
+        }
         .slider-title { font-weight: bold; font-size: 13px; margin-bottom: 6px; text-align: center; letter-spacing: 0.5px; }
         #timeSlider { width: 100%; cursor: pointer; accent-color: #337ab7; margin-bottom: 6px; }
         #currentStepLabel { font-size: 12px; font-weight: bold; text-align: center; color: #5cd184; }
-        .legend-box { position: fixed; bottom: 30px; right: 20px; z-index: 9999; background-color: rgba(33, 43, 54, 0.85); border: 1px solid rgba(255,255,255,0.15); border-radius: 8px; padding: 15px 12px 10px 12px; font-family: Arial, sans-serif; color: white; box-shadow: 4px 4px 12px rgba(0,0,0,0.5); width: 85px; box-sizing: border-box; font-size: 11px; }
+        
+        /* Legende (PC Standard-Layout) */
+        .legend-box { 
+            position: fixed; 
+            bottom: 30px; 
+            right: 20px; 
+            z-index: 9999; 
+            background-color: rgba(33, 43, 54, 0.85); 
+            border: 1px solid rgba(255,255,255,0.15); 
+            border-radius: 8px; 
+            padding: 15px 12px 10px 12px; 
+            font-family: Arial, sans-serif; 
+            color: white; 
+            box-shadow: 4px 4px 12px rgba(0,0,0,0.5); 
+            width: 85px; 
+            box-sizing: border-box; 
+            font-size: 11px; 
+        }
         .legend-title { font-weight: bold; font-size: 14px; text-align: center; margin-bottom: 8px; letter-spacing: 0.5px; }
         .legend-scale { position: relative; height: 200px; display: flex; flex-direction: column; }
         .legend-bar { width: 25px; height: 200px; display: flex; flex-direction: column; border-radius: 3px; overflow: hidden; border: 1.5px solid rgba(0,0,0,0.5); }
         .legend-labels { position: absolute; left: 35px; top: -7px; height: 214px; font-size: 12px; font-weight: bold; line-height: 1; display: flex; flex-direction: column; justify-content: space-between; }
         #loadingIndicator { display: none; text-align: center; margin-top: 8px; font-size: 11px; font-weight: bold; color: #d9534f; }
+
+        /* --- MOBILES TOUCH-STEUERKREUZ (D-Pad) --- */
+        .touch-controls { display: none; } /* Standardmäßig auf PC unsichtbar */
+
+        /* ================= RESPONSIVE DESIGN (SMARTPHONES) ================= */
+        @media (max-width: 768px) {
+            /* Info-Box oben platzieren, lässt links Platz für Zoom-Buttons */
+            .info-box {
+                top: 10px;
+                left: 50px;
+                right: 10px;
+                width: auto;
+                max-width: none;
+                padding: 8px;
+            }
+            .info-box h3 { font-size: 13px; margin-bottom: 4px; }
+            .info-box.collapsed { width: auto; }
+            
+            /* Slider ganz nach unten über die volle Breite */
+            .slider-container {
+                bottom: 10px;
+                left: 10px;
+                right: 10px;
+                width: auto;
+                transform: none;
+                max-width: none;
+                padding: 8px 12px;
+            }
+            .slider-title { font-size: 11px; margin-bottom: 4px; }
+            #currentStepLabel { font-size: 11px; }
+
+            /* Legende verkleinern und über den Slider rechts platzieren */
+            .legend-box {
+                bottom: 85px;
+                right: 10px;
+                padding: 8px 6px 5px 6px;
+                width: 65px;
+            }
+            .legend-title { font-size: 11px; margin-bottom: 4px; }
+            .legend-scale { height: 140px; }
+            .legend-bar { width: 15px; height: 140px; }
+            .legend-labels { left: 22px; height: 150px; font-size: 9px; }
+
+            /* --- TOUCH-STEUERKREUZ EINBLENDEN (Unten Links) --- */
+            .touch-controls {
+                display: grid;
+                grid-template-columns: repeat(3, 38px);
+                grid-template-rows: repeat(3, 38px);
+                gap: 4px;
+                position: fixed;
+                bottom: 85px;
+                left: 10px;
+                z-index: 9999;
+            }
+            .touch-btn {
+                width: 38px;
+                height: 38px;
+                background-color: rgba(33, 43, 54, 0.9);
+                border: 1px solid rgba(255,255,255,0.15);
+                border-radius: 50%;
+                color: white;
+                font-size: 15px;
+                font-weight: bold;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                cursor: pointer;
+                box-shadow: 2px 2px 8px rgba(0,0,0,0.4);
+                user-select: none;
+                -webkit-user-select: none;
+            }
+            .touch-btn:active {
+                background-color: #337ab7;
+            }
+        }
     </style>
 </head>
 <body>
+
+    <!-- Die Karte -->
     <div id="map"></div>
+
+    <!-- Info-Box -->
     <div class="info-box">
-        <h3>ICON-CH1 Windprognose (10m)</h3>
+        <h3>
+            <span>ICON-CH1 Wind (10m)</span>
+            <button id="toggleInfoBtn" onclick="toggleInfoBox()">Minimieren</button>
+        </h3>
         <table class="info-table">
             <tr><td class="info-label">Modelllauf (Ref):</td><td id="infoBoxRef" class="info-value">Wird geladen...</td></tr>
             <tr>
@@ -52,11 +209,23 @@
         </table>
         <div id="loadingIndicator">Lade Wetterdaten...</div>
     </div>
+
+    <!-- Virtuelles Touch-Steuerkreuz (D-Pad) für Smartphones -->
+    <div class="touch-controls">
+        <div style="grid-column: 2; grid-row: 1;"><button class="touch-btn" onclick="navUp()">▲</button></div>
+        <div style="grid-column: 1; grid-row: 2;"><button class="touch-btn" onclick="navLeft()">◀</button></div>
+        <div style="grid-column: 3; grid-row: 2;"><button class="touch-btn" onclick="navRight()">▶</button></div>
+        <div style="grid-column: 2; grid-row: 3;"><button class="touch-btn" onclick="navDown()">▼</button></div>
+    </div>
+
+    <!-- Slider -->
     <div class="slider-container">
         <div class="slider-title">PROGNOSESTUNDEN (← / →) | MEMBERS (↑ / ↓)</div>
         <input type="range" id="timeSlider" min="0" max="0" value="0">
         <div id="currentStepLabel">+0h</div>
     </div>
+
+    <!-- Legende -->
     <div class="legend-box">
         <div class="legend-title">km/h</div>
         <div class="legend-scale">
@@ -77,6 +246,7 @@
             </div>
         </div>
     </div>
+
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
         var map, config, times;
@@ -86,6 +256,36 @@
         var activeMarkers = null;
         var cacheContours = {};
         var cacheArrows = {};
+
+        // Info-Box einklappen/ausklappen
+        function toggleInfoBox() {
+            var box = document.querySelector(".info-box");
+            var btn = document.getElementById("toggleInfoBtn");
+            box.classList.toggle("collapsed");
+            if (box.classList.contains("collapsed")) {
+                btn.innerText = "Anzeigen";
+            } else {
+                btn.innerText = "Minimieren";
+            }
+        }
+
+        // Touch-Navigations-Funktionen
+        function navLeft() {
+            var newStep = Math.max(0, currentStepIdx - 1);
+            if (newStep !== currentStepIdx) updateForecast(currentMemberIdx, newStep);
+        }
+        function navRight() {
+            var newStep = Math.min(times.length - 1, currentStepIdx + 1);
+            if (newStep !== currentStepIdx) updateForecast(currentMemberIdx, newStep);
+        }
+        function navUp() {
+            var newMember = Math.max(0, currentMemberIdx - 1);
+            if (newMember !== currentMemberIdx) updateForecast(newMember, currentStepIdx);
+        }
+        function navDown() {
+            var newMember = Math.min(config.member_names.length - 1, currentMemberIdx + 1);
+            if (newMember !== currentMemberIdx) updateForecast(newMember, currentStepIdx);
+        }
 
         async function fetchAndDecompress(url) {
             const response = await fetch(url);
@@ -139,22 +339,16 @@
                 select.addEventListener("change", function() { updateForecast(this.value, currentStepIdx); });
 
                 document.addEventListener('keydown', function(event) {
-                    if (event.key === "ArrowLeft") {
-                        var newStep = Math.max(0, currentStepIdx - 1);
-                        if (newStep !== currentStepIdx) updateForecast(currentMemberIdx, newStep);
-                    } else if (event.key === "ArrowRight") {
-                        var newStep = Math.min(times.length - 1, currentStepIdx + 1);
-                        if (newStep !== currentStepIdx) updateForecast(currentMemberIdx, newStep);
-                    } else if (event.key === "ArrowUp") {
-                        event.preventDefault();
-                        var newMember = Math.max(0, currentMemberIdx - 1);
-                        if (newMember !== currentMemberIdx) updateForecast(newMember, currentStepIdx);
-                    } else if (event.key === "ArrowDown") {
-                        event.preventDefault();
-                        var newMember = Math.min(config.member_names.length - 1, currentMemberIdx + 1);
-                        if (newMember !== currentMemberIdx) updateForecast(newMember, currentStepIdx);
-                    }
+                    if (event.key === "ArrowLeft") navLeft();
+                    else if (event.key === "ArrowRight") navRight();
+                    else if (event.key === "ArrowUp") { event.preventDefault(); navUp(); }
+                    else if (event.key === "ArrowDown") { event.preventDefault(); navDown(); }
                 });
+
+                // Auf Smartphones die Info-Box standardmässig einklappen
+                if (window.innerWidth <= 768) {
+                    toggleInfoBox();
+                }
 
                 await updateForecast(0, 0);
             } catch (err) {
